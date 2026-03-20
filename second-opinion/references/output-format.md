@@ -1,4 +1,4 @@
-# Phase 4: Output Format
+# Output Format
 
 Use this template to synthesize the final report. Adapt the section headers based on mode (diagnosis vs. plan review).
 
@@ -15,7 +15,7 @@ Use this template to synthesize the final report. Adapt the section headers base
 
 ### Agents Used
 
-{List which brainstorming agents were selected and why, e.g.: "Outside View, Inside View, Devil's Advocate, Change Analyst (symptoms appeared suddenly after a known event), Problem Frame (vague symptom description)"}
+{List which agents were selected and why, noting tool access, e.g.: "Outside View (no tools), Inside View (with tools — examined codebase), Devil's Advocate (with tools), Pre-mortem (plan has significant implementation risk)"}
 
 ### Original Hypothesis
 
@@ -23,14 +23,14 @@ Use this template to synthesize the final report. Adapt the section headers base
 
 ### Ranked Alternatives
 
-{For each hypothesis, ranked by plausibility after research:}
+{For each hypothesis, ranked by plausibility:}
 
 #### #{RANK}: {Hypothesis title}
 
-- **Plausibility**: {High/Medium/Low} {— adjusted from initial ranking if research changed it}
+- **Plausibility**: {High/Medium/Low}
 - **Scores**: {Explanatory power / Specificity / Parsimony / Falsifiability, with multipliers}
-- **Sources**: {Which generators proposed it; note if multiple converged independently}
-- **Evidence summary**: {Key supporting and contradicting evidence from research, or from ranking if --quick}
+- **Sources**: {Which agents proposed it; note if multiple converged independently}
+- **Evidence summary**: {Key supporting and contradicting evidence found by agents during investigation, plus reasoning-based evidence from agents without tool access}
 - **How to verify**: {What specific evidence would prove this hypothesis}
 - **How to rule out**: {What specific evidence would disprove this hypothesis}
 
@@ -58,7 +58,5 @@ Use this template to synthesize the final report. Adapt the section headers base
 - "How to verify" → "How to detect this risk"
 - "How to rule out" → "How to mitigate"
 - "Recommended Next Steps" → "Recommended Plan Adjustments"
-
-**For --quick mode** (no research phase): The evidence summary will be thinner — based only on the generators' reasoning and the ranker's assessment, not investigation. Note this limitation in the summary.
 
 **When the original hypothesis survives**: If the original hypothesis ends up ranked #1 even after challenge, that's a positive signal — say so explicitly. The value was in stress-testing the assumption, not in replacing it.

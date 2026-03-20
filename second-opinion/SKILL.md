@@ -11,7 +11,7 @@ compatibility: Requires an agent that supports spawning sub-agents (e.g. Claude 
 
 You're about to challenge the current working hypothesis — whether it's yours or the user's — by getting independent perspectives that aren't anchored to the existing theory.
 
-The core idea: when you already have a theory, confirmation bias makes you look for supporting evidence and overlook contradictions. To counter this, you'll spawn agents that **don't know the hypothesis**, so their alternatives are genuinely independent.
+The core idea: when you already have a theory, confirmation bias makes you look for supporting evidence and overlook contradictions. To counter this, you'll spawn agents that **don't know the hypothesis**, so their alternatives are genuinely independent. Some agents investigate the specific system with tools while others reason purely from general knowledge — this tool access distinction is what creates genuine perspective diversity.
 
 ## Gotchas
 
@@ -20,6 +20,7 @@ The core idea: when you already have a theory, confirmation bias makes you look 
 - If the problem context is too vague (e.g., "something is broken"), generators will produce generic output. Ask the user for specific symptoms, observations, or constraints before proceeding.
 - When all generators converge on the same cause, that's a plausibility signal — but a weaker one than it appears, since all agents share the same LLM substrate. Verify the problem context wasn't so narrow that convergence was trivial.
 - The original hypothesis surviving as #1 is a valid outcome. The value was in stress-testing, not replacing.
+- **Respect the tool access rules.** Outside View must NOT use tools (its value is general-knowledge reasoning). Inside View and other tool-using agents SHOULD actively investigate. If you blur this distinction, the agents converge on identical output.
 
 ## Step 1: Extract Context
 
@@ -37,9 +38,7 @@ Read the conversation and identify:
 - **Diagnosis**: A problem, unexpected behavior, or something that needs explaining. Hypothesis = proposed root cause.
 - **Plan review**: A proposed plan or approach. Hypothesis = "this plan is sound." Agents look for gaps and risks instead of root causes.
 
-**Arguments** — check `$ARGUMENTS` for:
-- `--quick` flag: Skip the research phase (Step 4). Just brainstorm and rank.
-- Any other text: Treat as an explicit hypothesis override, replacing whatever you extracted from conversation.
+**Arguments** — check `$ARGUMENTS` for any text: treat as an explicit hypothesis override, replacing whatever you extracted from conversation.
 
 If you can't identify a hypothesis and none was provided in arguments, that's okay. You'll skip agents that require a hypothesis and adjust accordingly. The skill still works — it just generates alternatives without a specific theory to challenge.
 
@@ -47,17 +46,20 @@ If you can't identify a hypothesis and none was provided in arguments, that's ok
 
 ## Step 2: Select and Spawn Agents
 
-Read `references/sub-agents.md` for the full agent menu and selection guide.
+Read `references/sub-agents.md` for the full agent menu, tool access rules, and selection guide.
 
-**Select agents**: Based on the mode, hypothesis, and problem context, choose which agents to spawn. Always include the core agents (Outside View, Inside View, Devil's Advocate if hypothesis exists). Then select 1-2 on-demand agents whose perspective directly addresses an aspect of the problem. State which agents you selected and why.
+**Select agents**: Default to 2 core agents: Outside View (without tools) and Inside View (with tools). Add Devil's Advocate (with tools) if a hypothesis exists. Add an on-demand agent only when its perspective addresses a specific characteristic of the problem that the core agents cannot cover. State which agents you selected and why.
 
 **Spawn all selected agents in parallel** using the Agent tool (type: `general-purpose`). Follow the prompt guidance in the sub-agents reference for each agent. Key rules:
 
 - Agents marked "Sees hypothesis: No" get **only** the problem context. Never include the hypothesis.
 - Agents marked "Sees hypothesis: Yes" get both problem context and hypothesis.
+- Agents marked "Tool access: No" must be instructed to reason from general knowledge only, without using tools.
+- Agents marked "Tool access: Yes" should actively investigate — read files, search code, check configs, query data — and provide concrete evidence alongside their hypotheses. They must also state what they searched for but did not find.
 - Every agent must produce 2-3 alternatives (or risks/gaps in plan review mode), each with:
   - The proposed cause/risk
   - Why it's plausible
+  - **Evidence found** (for tool-using agents: specific files, code patterns, data; for non-tool agents: patterns, base rates, reasoning)
   - **What specific evidence would prove it**
   - **What specific evidence would disprove it**
 - Tell unanchored agents they have been **deliberately not given** the team's current theory. This framing matters.
@@ -66,32 +68,19 @@ Read `references/sub-agents.md` for the full agent menu and selection guide.
 
 Read `references/phase2-ranking-prompt.md` for the detailed prompt and scoring rubric.
 
-Once all generators finish, spawn a single ranking agent. It sees:
+Once all agents finish, spawn a single ranking agent. It sees:
 - All generated alternatives from Step 2
 - The original hypothesis (so it can rank it fairly alongside the alternatives)
 - The problem context
 
-The ranker uses a structured scoring rubric (explanatory power, specificity, parsimony, falsifiability) with multipliers for independent convergence and evidence quality. It scores each hypothesis before ranking to prevent anchoring on first impressions.
+The ranker uses a structured scoring rubric (explanatory power, specificity, parsimony, falsifiability) with multipliers for independent convergence (1.2x) and evidence quality (1.2x). It scores each hypothesis before ranking to prevent anchoring on first impressions. The ranker must preserve diversity — at least one hypothesis from a different problem frame should survive into the final ranking.
 
-## Step 4: Research (skip if --quick)
-
-Read `references/phase3-research-prompt.md` for the detailed prompt.
-
-Take the top 3 ranked hypotheses and spawn a research agent for each **in parallel**. Each gets:
-- The problem context
-- One hypothesis to investigate
-- The key evidence the ranker identified
-
-Research agents have full tool access. Their job is to investigate using whatever sources are available — code, documentation, web search, data files, configuration — looking for **both supporting and contradicting** evidence. They must also explicitly state what they searched for but didn't find, and if any additional evidence would prove or disprove their assigned hypothesis.
-
-If `--quick` was specified, skip this phase entirely. The report will note that it's based on reasoning alone, not investigation.
-
-## Step 5: Synthesize
+## Step 4: Synthesize
 
 Read `references/output-format.md` for the report template.
 
 Present the final report directly to the user. The report should:
-- State which agents were used and why
+- State which agents were used and why (noting tool access)
 - State the original hypothesis and what emerged
 - Rank all hypotheses with scores, evidence summaries, and verification/falsification criteria
 - Highlight the single most valuable insight
@@ -100,3 +89,5 @@ Present the final report directly to the user. The report should:
 If the original hypothesis survived as #1 after being challenged, say so — that's a positive outcome. The value was in stress-testing it, not in replacing it.
 
 Adapt the language for the mode (diagnosis vs. plan review) as described in the output format reference.
+
+If the ranked hypotheses suggest further investigation is needed, note that in the next steps — the main agent (you, after the skill completes) can do that investigation directly.
