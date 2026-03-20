@@ -4,12 +4,12 @@ Spawn a single ranking agent that sees all generated alternatives, the original 
 
 ## Key instructions for the ranker
 
-- **Deduplicate**: Multiple agents may independently identify the same cause with different framing. Group these and note which analysts converged — independent convergence is a plausibility signal (but a weaker one when all agents share the same LLM substrate).
+- **Deduplicate**: Multiple agents may independently identify the same cause with different framing. Group these and note which analysts converged — independent convergence is a plausibility signal.
 - **Include the original**: Rank the original hypothesis fairly alongside generated alternatives. If "None," rank only the alternatives.
 - **Use structured scoring**: Score each hypothesis using the rubric below BEFORE producing a holistic ranking. This prevents anchoring on first impressions.
 - **Note relationships**: Flag hypotheses that are mutually exclusive or potentially compounding.
-- **Randomize presentation**: If you notice yourself favoring hypotheses presented earlier, explicitly re-evaluate later ones.
-- **Weight concrete evidence**: Hypotheses backed by specific evidence found during investigation (file contents, code patterns, data observations) should be given more weight than those based purely on abstract reasoning. However, do not penalize the Outside View agent for lacking file-level evidence — its lack of tool access is intentional and its reasoning-based evidence is a valid, complementary perspective.
+- **Randomize presentation**: Re-evaluate later hypotheses to counter order effects.
+- **Weight concrete evidence**: Hypotheses backed by specific evidence found during investigation should be given more weight than those based purely on abstract reasoning. However, do not penalize the Outside View agent for lacking file-level evidence — its lack of tool access is intentional and its reasoning-based evidence is a valid, complementary perspective.
 - **Preserve diversity**: Ensure at least one hypothesis from a distinctly different problem frame survives into the final ranking. If the top results all cluster around the same causal mechanism, promote the highest-scoring hypothesis from a different frame, noting it was promoted for diversity.
 - **Rank all hypotheses**: Do not cut off at any fixed number. The full ranked list goes into the final report.
 
